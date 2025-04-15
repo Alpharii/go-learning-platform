@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go-learn-platform/internal/auth"
 	"go-learn-platform/internal/models"
 	"go-learn-platform/pkg/config"
 	"log"
@@ -34,11 +35,13 @@ func migrateDB(db *gorm.DB) error {
 }
 
 func main() {
-    // Load .env file
-    err := godotenv.Load()
-    if err != nil {
-        log.Fatalf("Error loading .env file: %v", err)
-    }
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
+	cfg := config.LoadConfig()
+	auth.InitGoogleConfig(cfg)
 
     DB, err = initDB()
     if err != nil {
@@ -62,6 +65,11 @@ func main() {
         })
     })
 
-    r.Run(":8080")
+	r.GET("/auth/google/login", auth.HandleGoogleLogin)
+	r.GET("/auth/google/callback", func(c *gin.Context) {
+		auth.HandleGoogleCallback(c, DB)
+	})
+
 	fmt.Println("server running in http://localhost:8080")
+    r.Run(":8080")
 }

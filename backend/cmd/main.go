@@ -5,6 +5,7 @@ import (
 	"go-learn-platform/internal/auth"
 	"go-learn-platform/internal/models"
 	"go-learn-platform/pkg/config"
+	"go-learn-platform/routes"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -58,17 +59,7 @@ func main() {
 
     r := gin.Default()
 
-    // Root route
-    r.GET("/", func(ctx *gin.Context) {
-        ctx.JSON(200, gin.H{
-            "message": "Welcome to Go Learn Platform!",
-        })
-    })
-
-	r.GET("/auth/google/login", auth.HandleGoogleLogin)
-	r.GET("/auth/google/callback", func(c *gin.Context) {
-		auth.HandleGoogleCallback(c, DB)
-	})
+    routes.Routes(r, DB)
 
 	fmt.Println("server running in http://localhost:8080")
     r.Run(":8080")

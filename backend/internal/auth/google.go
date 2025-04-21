@@ -33,7 +33,6 @@ func HandleGoogleLogin(c *gin.Context) {
     url := googleOauthConfig.AuthCodeURL("state", oauth2.AccessTypeOffline)
     c.Redirect(http.StatusTemporaryRedirect, url)
 }
-
 func HandleGoogleCallback(c *gin.Context, db *gorm.DB) {
     code := c.Query("code")
     token, err := googleOauthConfig.Exchange(context.Background(), code)
@@ -66,11 +65,21 @@ func HandleGoogleCallback(c *gin.Context, db *gorm.DB) {
     var user models.User
     result := db.Where("google_id = ?", userInfo.ID).First(&user)
     if result.Error != nil && result.Error == gorm.ErrRecordNotFound {
+        // Buat pengguna baru
         newUser := models.User{
             GoogleID: userInfo.ID,
             Email:    userInfo.Email,
         }
         db.Create(&newUser)
+
+        // Buat profil dengan nilai default
+        newProfile := models.Profile{
+            UserID: newUser.ID, // Hubungkan ke User
+            Name:   "",         // Default name
+            Image:  "",         // Default image URL
+        }
+        db.Create(&newProfile)
+
         user = newUser
     }
 
@@ -78,40 +87,5 @@ func HandleGoogleCallback(c *gin.Context, db *gorm.DB) {
     c.JSON(http.StatusOK, gin.H{
         "id":    user.ID,
         "email": user.Email,
-    })
-}
-
-func UpdateUserName(c *gin.Context, db *gorm.DB) {
-    userID := c.Param("id") 
-    var input struct {
-        Name string `json:"name" binding:"required"`
-    }
-
-    // Validasi input
-    if err := c.ShouldBindJSON(&input); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-        return
-    }
-
-    // Cari pengguna berdasarkan ID
-    var user models.User
-    result := db.First(&user, userID)
-    if result.Error != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-        return
-    }
-
-    // Perbarui nama pengguna
-    user.Name = input.Name
-    db.Save(&user)
-
-    // Kirim respons sukses
-    c.JSON(http.StatusOK, gin.H{
-        "message": "Name updated successfully",
-        "user": gin.H{
-            "id":    user.ID,
-            "name":  user.Name,
-            "email": user.Email,
-        },
     })
 }

@@ -1,11 +1,12 @@
 package routes
 
 import (
-    "go-learn-platform/internal/auth"
-    "net/http"
+	"go-learn-platform/internal/auth"
+	"go-learn-platform/internal/controllers"
+	"net/http"
 
-    "github.com/gin-gonic/gin"
-    "gorm.io/gorm"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func Routes(r *gin.Engine, DB *gorm.DB) {
@@ -22,7 +23,12 @@ func Routes(r *gin.Engine, DB *gorm.DB) {
         auth.HandleGoogleCallback(c, DB)
     })
 
-	r.PUT("/users/:id/name", func(c *gin.Context) {
-		auth.UpdateUserName(c, DB)
-	})
+    // Profile routes
+    r.GET("/profile/:id", func(c *gin.Context) {
+        controllers.GetProfile(c, DB)
+    })
+    r.PUT("/profile/:id", func(c *gin.Context) {
+        controllers.UpdateProfile(c, DB)
+    })
+
 }

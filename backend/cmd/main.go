@@ -50,12 +50,11 @@ func main() {
     }
     log.Println("Successfully connected to the database!")
 
-    // Migrate database
-    // err = migrateDB(DB)
-    // if err != nil {
-    //     log.Fatalf("Failed to migrate database: %v", err)
-    // }
-    // log.Println("Database migration completed successfully!")
+    err = migrateDB(DB)
+    if err != nil {
+        log.Fatalf("Failed to migrate database: %v", err)
+    }
+    log.Println("Database migration completed successfully!")
 
     r := gin.Default()
 

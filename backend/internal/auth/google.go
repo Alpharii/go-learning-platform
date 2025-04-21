@@ -33,6 +33,7 @@ func HandleGoogleLogin(c *gin.Context) {
     url := googleOauthConfig.AuthCodeURL("state", oauth2.AccessTypeOffline)
     c.Redirect(http.StatusTemporaryRedirect, url)
 }
+
 func HandleGoogleCallback(c *gin.Context, db *gorm.DB) {
     code := c.Query("code")
     token, err := googleOauthConfig.Exchange(context.Background(), code)
@@ -83,9 +84,19 @@ func HandleGoogleCallback(c *gin.Context, db *gorm.DB) {
         user = newUser
     }
 
-    // Kirim data pengguna ke frontend (tanpa nama jika belum diatur)
+    // Generate JWT
+    jwtToken, err := GenerateJWT(user.ID, user.Email)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate JWT"})
+        return
+    }
+
+    // Kirim JWT ke frontend
     c.JSON(http.StatusOK, gin.H{
-        "id":    user.ID,
-        "email": user.Email,
+        "token": jwtToken,
+        "user": gin.H{
+            "id":    user.ID,
+            "email": user.Email,
+        },
     })
 }

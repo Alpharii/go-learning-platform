@@ -32,11 +32,10 @@ func Routes(r *gin.Engine, DB *gorm.DB) {
         controllers.UpdateProfile(c, DB)
     })
 
-
     protected := r.Group("/")
-
     protected.Use(middleware.AuthMiddleware())
     {
+        // Course routes
         protected.POST("/courses", func(c *gin.Context) {
             controllers.CreateCourse(c, DB)
         })
@@ -53,6 +52,7 @@ func Routes(r *gin.Engine, DB *gorm.DB) {
             controllers.DeleteCourse(c, DB)
         })
 
+        // Enrollment routes
         protected.POST("/enroll", func(c *gin.Context) {
             controllers.EnrollUser(c, DB)
         })
@@ -62,6 +62,22 @@ func Routes(r *gin.Engine, DB *gorm.DB) {
         protected.DELETE("/enroll/:id", func(c *gin.Context) {
             controllers.CancelEnrollment(c, DB)
         })
-    }
 
+        // Lesson routes
+        protected.POST("/lessons", func(c *gin.Context) {
+            controllers.CreateLesson(c, DB)
+        })
+        protected.GET("/lessons/:course_id", func(c *gin.Context) {
+            controllers.GetLesson(c, DB)
+        })
+        protected.GET("/lesson/:id", func(c *gin.Context) {
+            controllers.GetLesson(c, DB)
+        })
+        protected.PUT("/lesson/:id", func(c *gin.Context) {
+            controllers.UpdateLesson(c, DB)
+        })
+        protected.DELETE("/lesson/:id", func(c *gin.Context) {
+            controllers.DeleteLesson(c, DB)
+        })
+    }
 }

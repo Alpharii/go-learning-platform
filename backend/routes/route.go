@@ -52,6 +52,16 @@ func Routes(r *gin.Engine, DB *gorm.DB) {
         protected.DELETE("/courses/:id", func(c *gin.Context) {
             controllers.DeleteCourse(c, DB)
         })
+
+        protected.POST("/enroll", func(c *gin.Context) {
+            controllers.EnrollUser(c, DB)
+        })
+        protected.GET("/enrollments/:user_id", func(c *gin.Context) {
+            controllers.GetEnrollments(c, DB)
+        })
+        protected.DELETE("/enroll/:id", func(c *gin.Context) {
+            controllers.CancelEnrollment(c, DB)
+        })
     }
 
 }

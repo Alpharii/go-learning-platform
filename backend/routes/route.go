@@ -52,7 +52,7 @@ func Routes(r *gin.Engine, DB *gorm.DB) {
             controllers.DeleteCourse(c, DB)
         })
 
-        protected.GET("/courses/:course_id/progress", func(c *gin.Context) {
+        protected.GET("/courses/progress/:course_id", func(c *gin.Context) {
             controllers.GetCourseProgress(c, DB)
         })
 

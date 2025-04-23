@@ -1,4 +1,10 @@
 {
+  "compilerOptions": {
+    "baseUrl": ".", // Menentukan root direktori untuk alias impor
+    "paths": {
+      "@/*": ["src/*"] // Alias `@` untuk folder `src`
+    }
+  },
   "files": [],
   "references": [
     {

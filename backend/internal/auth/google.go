@@ -91,12 +91,6 @@ func HandleGoogleCallback(c *gin.Context, db *gorm.DB) {
         return
     }
 
-    // Kirim JWT ke frontend
-    c.JSON(http.StatusOK, gin.H{
-        "token": jwtToken,
-        "user": gin.H{
-            "id":    user.ID,
-            "email": user.Email,
-        },
-    })
+    redirectURL := "http://localhost:5173/login?token=" + jwtToken
+    c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }

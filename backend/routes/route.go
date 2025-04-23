@@ -35,6 +35,17 @@ func Routes(r *gin.Engine, DB *gorm.DB) {
     protected := r.Group("/")
     protected.Use(middleware.AuthMiddleware())
     {
+        // Quiz routes
+        protected.GET("/quizzes", func(c *gin.Context) {
+            controllers.GetAllQuizzes(c, DB)
+        })
+        protected.POST("/quizzes", func(c *gin.Context) {
+            controllers.CreateQuiz(c, DB)
+        })
+        protected.DELETE("/quizzes/:id", func(c *gin.Context) {
+            controllers.DeleteQuiz(c, DB)
+        })
+
         // Course routes
         protected.POST("/courses", func(c *gin.Context) {
             controllers.CreateCourse(c, DB)

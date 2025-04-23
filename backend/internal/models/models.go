@@ -42,14 +42,15 @@ type Lesson struct {
 // Enrollment represents the enrollment table
 type Enrollment struct {
     gorm.Model
-    UserID  uint `gorm:"not null"`
-    CourseID uint `gorm:"not null"`
+    UserID   uint    `gorm:"not null"`
+    CourseID uint    `gorm:"not null"`
+    Progress float64 `gorm:"default:0"` // Progress in percentage (0-100)
 }
 
-// Quiz represents the quiz table
 type Quiz struct {
     gorm.Model
     LessonID uint   `gorm:"not null"`
+    Lesson   Lesson `gorm:"foreignKey:LessonID"` // Relasi ke Lesson
     Question string `gorm:"not null"`
     Options  string `gorm:"not null"`
     Answer   string `gorm:"not null"`

@@ -9,6 +9,64 @@ import (
     "gorm.io/gorm"
 )
 
+// GetCourseProgress calculates and returns the progress of a user in a course
+func GetCourseProgress(c *gin.Context, db *gorm.DB) {
+    // Ambil user_id dari context (diatur oleh middleware)
+    userID, exists := c.Get("userID")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+        return
+    }
+
+    // Pastikan userID adalah uint
+    userIDUint, ok := userID.(uint)
+    if !ok {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse user ID"})
+        return
+    }
+
+    // Ambil course_id dari parameter URL
+    courseID, err := strconv.Atoi(c.Param("course_id"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid course ID"})
+        return
+    }
+
+    // Cek apakah pengguna terdaftar di kursus
+    var enrollment models.Enrollment
+    if err := db.Where("user_id = ? AND course_id = ?", userIDUint, courseID).First(&enrollment).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "User is not enrolled in this course"})
+        return
+    }
+
+    // Hitung total lesson dalam kursus
+    var totalLessons int64
+    if err := db.Model(&models.Lesson{}).Where("course_id = ?", courseID).Count(&totalLessons).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count lessons"})
+        return
+    }
+
+    // Hitung jumlah lesson yang telah diselesaikan oleh pengguna
+    var completedLessons int64
+    if err := db.Table("lesson_progress").
+        Where("user_id = ? AND lesson_id IN (?)", userIDUint, db.Table("lessons").Select("id").Where("course_id = ?", courseID)).
+        Count(&completedLessons).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count completed lessons"})
+        return
+    }
+
+    // Hitung progress dalam persentase
+    progress := 0.0
+    if totalLessons > 0 {
+        progress = (float64(completedLessons) / float64(totalLessons)) * 100
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "course_id": courseID,
+        "progress":  progress,
+    })
+}
+
 // CreateCourse creates a new course
 func CreateCourse(c *gin.Context, db *gorm.DB) {
     var input struct {
@@ -180,4 +238,35 @@ func DeleteCourse(c *gin.Context, db *gorm.DB) {
     }
 
     c.JSON(http.StatusOK, gin.H{"message": "Course deleted successfully"})
+}
+
+// UpdateCourseProgress calculates and updates the progress of a user in a course
+func UpdateCourseProgress(db *gorm.DB, userID uint, courseID uint) error {
+    // Hitung total lesson dalam kursus
+    var totalLessons int64
+    if err := db.Model(&models.Lesson{}).Where("course_id = ?", courseID).Count(&totalLessons).Error; err != nil {
+        return err
+    }
+
+    // Hitung jumlah lesson yang telah diselesaikan oleh pengguna
+    var completedLessons int64
+    if err := db.Table("quiz_results").
+        Where("user_id = ? AND quiz_id IN (?)", userID, db.Table("quizzes").Select("id").Where("lesson_id IN (?)", db.Table("lessons").Select("id").Where("course_id = ?", courseID))).
+        Distinct("quiz_id").
+        Count(&completedLessons).Error; err != nil {
+        return err
+    }
+
+    // Hitung progress dalam persentase
+    progress := 0.0
+    if totalLessons > 0 {
+        progress = (float64(completedLessons) / float64(totalLessons)) * 100
+    }
+
+    // Perbarui progress di tabel Enrollment
+    if err := db.Model(&models.Enrollment{}).Where("user_id = ? AND course_id = ?", userID, courseID).Update("progress", progress).Error; err != nil {
+        return err
+    }
+
+    return nil
 }

@@ -35,17 +35,6 @@ func Routes(r *gin.Engine, DB *gorm.DB) {
     protected := r.Group("/")
     protected.Use(middleware.AuthMiddleware())
     {
-        // Quiz routes
-        protected.GET("/quizzes", func(c *gin.Context) {
-            controllers.GetAllQuizzes(c, DB)
-        })
-        protected.POST("/quizzes", func(c *gin.Context) {
-            controllers.CreateQuiz(c, DB)
-        })
-        protected.DELETE("/quizzes/:id", func(c *gin.Context) {
-            controllers.DeleteQuiz(c, DB)
-        })
-
         // Course routes
         protected.POST("/courses", func(c *gin.Context) {
             controllers.CreateCourse(c, DB)
@@ -62,6 +51,11 @@ func Routes(r *gin.Engine, DB *gorm.DB) {
         protected.DELETE("/courses/:id", func(c *gin.Context) {
             controllers.DeleteCourse(c, DB)
         })
+
+        protected.GET("/courses/:course_id/progress", func(c *gin.Context) {
+            controllers.GetCourseProgress(c, DB)
+        })
+
 
         // Enrollment routes
         protected.POST("/enroll", func(c *gin.Context) {
@@ -89,6 +83,33 @@ func Routes(r *gin.Engine, DB *gorm.DB) {
         })
         protected.DELETE("/lesson/:id", func(c *gin.Context) {
             controllers.DeleteLesson(c, DB)
+        })
+
+        // Quiz routes
+        protected.GET("/quizzes", func(c *gin.Context) {
+            controllers.GetAllQuizzes(c, DB)
+        })
+        protected.POST("/quizzes", func(c *gin.Context) {
+            controllers.CreateQuiz(c, DB)
+        })
+        protected.DELETE("/quizzes/:id", func(c *gin.Context) {
+            controllers.DeleteQuiz(c, DB)
+        })
+        
+        // Route untuk menyelesaikan quiz
+        protected.POST("/quizzes/:quiz_id/complete", func(c *gin.Context) {
+            controllers.CompleteQuiz(c, DB)
+        })
+
+        // Quiz Result routes
+        protected.GET("/quiz-results", func(c *gin.Context) {
+            controllers.GetQuizResults(c, DB)
+        })
+        protected.POST("/quiz-results", func(c *gin.Context) {
+            controllers.CreateQuizResult(c, DB)
+        })
+        protected.DELETE("/quiz-results/:id", func(c *gin.Context) {
+            controllers.DeleteQuizResult(c, DB)
         })
     }
 }

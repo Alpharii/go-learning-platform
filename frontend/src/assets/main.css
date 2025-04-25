@@ -1,6 +1,6 @@
 @import './base.css';
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -9,7 +9,6 @@ body,
 #app {
   height: 100%;
 }
-
 
 @theme inline {
   --color-background: var(--background);

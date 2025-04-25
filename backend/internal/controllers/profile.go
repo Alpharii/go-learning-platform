@@ -8,6 +8,27 @@ import (
     "gorm.io/gorm"
 )
 
+// GetMyProfile retrieves the profile of the currently authenticated user
+func GetMyProfile(c *gin.Context, db *gorm.DB) {
+    userID := c.MustGet("userID").(uint)
+
+    var user models.User
+    result := db.Preload("Profile").First(&user, userID)
+    if result.Error != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "id":    user.ID,
+        "email": user.Email,
+        "profile": gin.H{
+            "name":  user.Profile.Name,
+            "image": user.Profile.Image,
+        },
+    })
+}
+
 // GetProfile retrieves the profile of a user by their ID
 func GetProfile(c *gin.Context, db *gorm.DB) {
     userID := c.Param("id")

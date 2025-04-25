@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"go-learn-platform/internal/auth"
 	"go-learn-platform/internal/models"
-	"go-learn-platform/pkg/config"
-	"go-learn-platform/routes"
-	"log"
+	"go-learn-platform/internal/pkg/config"
+	"go-learn-platform/internal/routes"
 
+	"log"
+    "time"
+
+    "github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -58,6 +61,15 @@ func main() {
 
     r := gin.Default()
 
+    r.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"http://localhost:5173"}, // frontend origin kamu
+        AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        MaxAge: 12 * time.Hour,
+    }))
+    
     routes.Routes(r, DB)
 
 	fmt.Println("server running in http://localhost:8080")

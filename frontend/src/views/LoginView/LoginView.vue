@@ -1,35 +1,40 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/authStores';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { LogIn } from 'lucide-vue-next';
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStores'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { LogIn } from 'lucide-vue-next'
 
-const authStore = useAuthStore();
-const router = useRouter();
+const authStore = useAuthStore()
+const router = useRouter()
 
 const loginWithGoogle = () => {
-  authStore.loginWithGoogle();
-};
+  authStore.loginWithGoogle()
+}
 
 onMounted(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get('token');
+  const urlParams = new URLSearchParams(window.location.search)
+  const token = urlParams.get('token')
+  console.log('TOKEN DARI URL:', token)
   if (token) {
     authStore.fetchUser(token).then(() => {
-      router.push({ name: 'Home' });
-    });
+      router.push({ name: 'Home' })
+    })
   }
-});
+})
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-100 to-slate-200 px-4">
+  <div
+    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-100 to-slate-200 px-4"
+  >
     <Card class="w-full max-w-md shadow-xl border-none animate-fade-in rounded-2xl">
       <CardHeader class="text-center space-y-1">
         <CardTitle class="text-3xl font-extrabold text-slate-800">Welcome Back!</CardTitle>
-        <CardDescription class="text-gray-500">Silakan login menggunakan akun Google Anda.</CardDescription>
+        <CardDescription class="text-gray-500"
+          >Silakan login menggunakan akun Google Anda.</CardDescription
+        >
       </CardHeader>
 
       <CardContent>

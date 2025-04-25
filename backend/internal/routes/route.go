@@ -33,8 +33,14 @@ func Routes(r *gin.Engine, DB *gorm.DB) {
     })
 
     protected := r.Group("/")
+    
     protected.Use(middleware.AuthMiddleware())
     {
+        //Get my profile
+        protected.GET("/profile/me", func(c *gin.Context) {
+            controllers.GetMyProfile(c, DB)
+        })
+        
         // Course routes
         protected.POST("/courses", func(c *gin.Context) {
             controllers.CreateCourse(c, DB)

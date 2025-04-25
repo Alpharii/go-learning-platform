@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"go-learn-platform/internal/models"
-	"go-learn-platform/pkg/config"
+	"go-learn-platform/internal/pkg/config"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"

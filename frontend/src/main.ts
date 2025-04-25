@@ -15,4 +15,11 @@ app.use(pinia)
 
 app.use(router)
 
+app.config.errorHandler = (err, instance, info) => {
+    console.error('Global error handler triggered:', err)
+    console.error('Component instance:', instance)
+    console.error('Error info:', info)
+}
+
+
 app.mount('#app')

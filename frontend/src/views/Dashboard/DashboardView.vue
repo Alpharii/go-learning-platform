@@ -1,56 +1,145 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/authStores'
+import { fetchCourses, type Course } from '@/services/courseService'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { LogOut } from 'lucide-vue-next'
-
-interface Course {
-  id: number
-  title: string
-  description: string
-}
 
 const auth = useAuthStore()
 const courses = ref<Course[]>([])
+const isLoading = ref(true)
+const error = ref<string | null>(null)
 
-const fetchCourses = async () => {
-  const res = await fetch('http://localhost:8080/courses', {
-    headers: {
-      Authorization: `Bearer ${auth.token}`,
-    },
-  })
-  const data = await res.json()
-  courses.value = data
+const profileName = computed(() => 
+  auth.user?.profile.name || 'Pengguna'
+)
+
+const profileInitials = computed(() => 
+  profileName.value.split(' ').map(n => n[0]).join('').toUpperCase()
+)
+
+const loadCourses = async () => {
+  try {
+    courses.value = await fetchCourses()
+    error.value = null
+  } catch (err) {
+    error.value = 'Gagal memuat data kursus. Silakan coba lagi nanti.'
+    console.error('Failed to load courses:', err)
+  } finally {
+    isLoading.value = false
+  }
 }
 
 onMounted(() => {
-  fetchCourses()
+  loadCourses()
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 py-10 px-4">
-    <div class="max-w-4xl mx-auto space-y-6">
-      <div class="flex items-center justify-between">
-        <h1 class="text-3xl font-bold text-slate-800">Dashboard</h1>
-        <button @click="auth.logout()" class="text-red-600 flex items-center gap-1 hover:underline">
-          <LogOut class="w-4 h-4" /> Logout
-        </button>
+  <div class="min-h-screen bg-background p-6">
+    <!-- Header -->
+    <header class="max-w-7xl mx-auto flex justify-between items-center mb-8">
+      <div class="space-y-1">
+        <h1 class="text-3xl font-bold text-foreground">Dashboard</h1>
+        <p class="text-sm text-muted-foreground">
+          Selamat datang di platform pembelajaran kami
+        </p>
       </div>
 
-      <div>
-        <p class="text-muted-foreground">Selamat datang, {{ auth.user?.name || 'User' }}</p>
+      <!-- Profile Dropdown -->
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Button variant="ghost" class="h-10 w-10 rounded-full p-0">
+            <Avatar class="h-9 w-9">
+              <AvatarImage 
+                :src="auth.user?.profile.image" 
+                alt="Profile picture" 
+              />
+              <AvatarFallback class="bg-primary text-primary-foreground">
+                {{ profileInitials }}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        
+        <DropdownMenuContent align="end" class="w-56">
+          <DropdownMenuItem 
+            @click="auth.logout()"
+            class="text-destructive cursor-pointer"
+          >
+            <LogOut class="mr-2 h-4 w-4" />
+            Keluar Akun
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto space-y-8">
+      <!-- Welcome Section -->
+      <Card>
+        <CardHeader>
+          <CardTitle class="text-lg">
+            👋 Halo, {{ profileName }}!
+          </CardTitle>
+          <CardDescription>
+            Anda memiliki {{ courses.length }} kursus tersedia
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      <!-- Courses Grid -->
+      <div v-if="isLoading" class="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <Card v-for="n in 3" :key="n">
+          <CardContent class="p-6 space-y-4">
+            <Skeleton class="h-6 w-3/4" />
+            <Skeleton class="h-4 w-full" />
+            <Skeleton class="h-4 w-2/3" />
+          </CardContent>
+        </Card>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div
+      <Alert v-else-if="error" variant="destructive">
+        <AlertDescription>
+          {{ error }}
+        </AlertDescription>
+      </Alert>
+
+      <div v-else class="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <Card 
           v-for="course in courses"
-          :key="course.id"
-          class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow"
+          :key="course.ID"
+          class="hover:shadow-lg transition-shadow"
         >
-          <h2 class="text-xl font-semibold text-slate-800">{{ course.title }}</h2>
-          <p class="text-sm text-slate-500">{{ course.description }}</p>
-        </div>
+          <CardHeader>
+            <CardTitle class="text-base">{{ course.Title }}</CardTitle>
+            <CardDescription class="line-clamp-3">
+              {{ course.Description || 'Tidak ada deskripsi' }}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" class="w-full">
+              Lihat Detail
+            </Button>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </main>
   </div>
 </template>

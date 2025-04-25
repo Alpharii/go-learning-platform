@@ -1,6 +1,8 @@
 import { useAuthStore } from '@/stores/authStores'
+import DashboardView from '@/views/Dashboard/DashboardView.vue'
 import HomeView from '@/views/HomeView/HomeView.vue'
 import LoginView from '@/views/LoginView/LoginView.vue'
+import CreateProfile from '@/views/Profile/Create/CreateProfile.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
@@ -9,7 +11,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'Home',
-      component: HomeView,
+      component: DashboardView,
       meta: { requiresAuth: true },
     },
     {
@@ -26,17 +28,38 @@ const router = createRouter({
       name: 'Login',
       component: LoginView,
     },
+    {
+      path: '/profile/create',
+      name: 'CreateProfile',
+      component: CreateProfile,
+      meta: { requiresAuth: true }, // Pastikan hanya pengguna autentikasi yang bisa mengakses
+    },
   ],
 })
 
 router.beforeEach((to, _, next) => {
   const auth = useAuthStore()
-  console.log(auth.token)
+
+  console.log('Router beforeEach triggered')
+  console.log('Route:', to.name)
+  console.log('Auth token:', auth.token)
+  console.log('Auth user:', auth.user)
+
+  // Jika pengguna sudah di halaman CreateProfile, jangan redirect lagi
+  if (to.name === 'CreateProfile') {
+    console.log('Already on CreateProfile route, skipping redirection')
+    return next()
+  }
+
   if (to.meta.requiresAuth && !auth.token) {
-    next({ name: 'Login' })
+    console.log('Redirecting to Login because token is missing')
+    next({ name: 'Login' }) // Redirect ke halaman login jika tidak ada token
+  } else if (to.meta.requiresAuth && (!auth.user || !auth.user.profile?.name)) {
+    console.log('Redirecting to CreateProfile because user or name is missing')
+    next({ name: 'CreateProfile' }) // Redirect ke halaman pembuatan profil jika nama kosong
   } else {
-    next()
+    console.log('Proceeding to route:', to.name)
+    next() // Lanjutkan ke rute yang diminta
   }
 })
-
 export default router

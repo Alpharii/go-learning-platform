@@ -28,9 +28,6 @@ func Routes(r *gin.Engine, DB *gorm.DB) {
     r.GET("/profile/:id", func(c *gin.Context) {
         controllers.GetProfile(c, DB)
     })
-    r.PUT("/profile/:id", func(c *gin.Context) {
-        controllers.UpdateProfile(c, DB)
-    })
 
     protected := r.Group("/")
     
@@ -39,6 +36,9 @@ func Routes(r *gin.Engine, DB *gorm.DB) {
         //Get my profile
         protected.GET("/profile/me", func(c *gin.Context) {
             controllers.GetMyProfile(c, DB)
+        })
+        protected.PUT("/profile/update", func(c *gin.Context) {
+            controllers.UpdateProfile(c, DB)
         })
         
         // Course routes

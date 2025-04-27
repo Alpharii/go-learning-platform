@@ -25,6 +25,7 @@ type Course struct {
     Title       string   `gorm:"not null"` // Judul kursus
     Description string   `gorm:"not null"` // Deskripsi kursus
     UserID      uint     `gorm:"not null"` // ID pengguna (pembuat kursus)
+    Image       string   // URL of the course image
     Lessons     []Lesson `gorm:"foreignKey:CourseID"` // Relasi one-to-many dengan Lesson
     Enrollments []Enrollment `gorm:"foreignKey:CourseID"` // Relasi one-to-many dengan Enrollment
 }
@@ -36,6 +37,7 @@ type Lesson struct {
     Title    string `gorm:"not null"`
     Content  string `gorm:"not null"`
     Order    int    `gorm:"not null"`
+    Image    string // URL of the lesson image
     Quizzes  []Quiz `gorm:"foreignKey:LessonID"`
 }
 

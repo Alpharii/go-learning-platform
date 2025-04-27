@@ -1,11 +1,13 @@
 package controllers
 
 import (
-    "net/http"
+	"net/http"
 
-    "go-learn-platform/internal/models"
-    "github.com/gin-gonic/gin"
-    "gorm.io/gorm"
+	"go-learn-platform/internal/middleware"
+	"go-learn-platform/internal/models"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // GetMyProfile retrieves the profile of the currently authenticated user
@@ -50,21 +52,24 @@ func GetProfile(c *gin.Context, db *gorm.DB) {
     })
 }
 
-// UpdateProfile updates the profile of a user
 func UpdateProfile(c *gin.Context, db *gorm.DB) {
-    userID := c.Param("id")
-    var input struct {
-        Name  string `json:"name"`
-        Image string `json:"image"` // URL of the new profile image
-    }
-
-    // Validate input
-    if err := c.ShouldBindJSON(&input); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+    userID, exists := c.Get("userID")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
         return
     }
 
-    // Find the user and their profile
+    // Ambil field name dari form
+    name := c.PostForm("name")
+
+    // Upload file image
+    imageURL, err := middleware.UploadFile(c, "image")
+    if err != nil && err.Error() != "http: no such file" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    // Temukan user dan preload Profile
     var user models.User
     result := db.Preload("Profile").First(&user, userID)
     if result.Error != nil {
@@ -72,19 +77,29 @@ func UpdateProfile(c *gin.Context, db *gorm.DB) {
         return
     }
 
-    // Update or create the profile
-    if user.Profile.UserID == 0 { // If profile doesn't exist, create it
-        user.Profile = models.Profile{
+    // Jika profil belum ada, buat baru
+    if user.Profile.UserID == 0 {
+        newProfile := models.Profile{
             UserID: user.ID,
-            Name:   input.Name,
-            Image:  input.Image,
+            Name:   name,
+            Image:  imageURL,
         }
-    } else { // If profile exists, update it
-        user.Profile.Name = input.Name
-        user.Profile.Image = input.Image
+        if err := db.Create(&newProfile).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create profile"})
+            return
+        }
+        user.Profile = newProfile
+    } else {
+        // Update profil yang ada
+        user.Profile.Name = name
+        if imageURL != "" {
+            user.Profile.Image = imageURL
+        }
+        if err := db.Save(&user.Profile).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+            return
+        }
     }
-
-    db.Save(&user.Profile) // Save the updated profile
 
     c.JSON(http.StatusOK, gin.H{
         "message": "Profile updated successfully",

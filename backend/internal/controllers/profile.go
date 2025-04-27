@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"go-learn-platform/internal/middleware"
@@ -21,12 +22,18 @@ func GetMyProfile(c *gin.Context, db *gorm.DB) {
         return
     }
 
+    // Construct full image URL
+    imageURL := ""
+    if user.Profile.Image != "" {
+        imageURL = fmt.Sprintf("http://localhost:8080%s", user.Profile.Image)
+    }
+
     c.JSON(http.StatusOK, gin.H{
         "id":    user.ID,
         "email": user.Email,
         "profile": gin.H{
             "name":  user.Profile.Name,
-            "image": user.Profile.Image,
+            "image": imageURL,
         },
     })
 }
@@ -42,12 +49,18 @@ func GetProfile(c *gin.Context, db *gorm.DB) {
         return
     }
 
+    // Construct full image URL
+    imageURL := ""
+    if user.Profile.Image != "" {
+        imageURL = fmt.Sprintf("http://localhost:8080%s", user.Profile.Image)
+    }
+
     c.JSON(http.StatusOK, gin.H{
         "id":    user.ID,
         "email": user.Email,
         "profile": gin.H{
             "name":  user.Profile.Name,
-            "image": user.Profile.Image,
+            "image": imageURL,
         },
     })
 }
@@ -58,6 +71,7 @@ func UpdateProfile(c *gin.Context, db *gorm.DB) {
         c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
         return
     }
+
 
     // Ambil field name dari form
     name := c.PostForm("name")

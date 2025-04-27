@@ -70,6 +70,8 @@ func main() {
         MaxAge: 12 * time.Hour,
     }))
     
+    r.Static("/public", "./public")
+
     routes.Routes(r, DB)
 
 	fmt.Println("server running in http://localhost:8080")

@@ -3,6 +3,7 @@ import DashboardView from '@/views/Dashboard/DashboardView.vue'
 import HomeView from '@/views/HomeView/HomeView.vue'
 import LoginView from '@/views/LoginView/LoginView.vue'
 import CreateProfile from '@/views/Profile/Create/CreateProfile.vue'
+import UpdateProfile from '@/views/Profile/Update/UpdateProfile.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
@@ -32,6 +33,12 @@ const router = createRouter({
       path: '/profile/create',
       name: 'CreateProfile',
       component: CreateProfile,
+      meta: { requiresAuth: true }, // Pastikan hanya pengguna autentikasi yang bisa mengakses
+    },
+    {
+      path: '/profile/update',
+      name: 'UpdateProfile',
+      component: UpdateProfile,
       meta: { requiresAuth: true }, // Pastikan hanya pengguna autentikasi yang bisa mengakses
     },
   ],

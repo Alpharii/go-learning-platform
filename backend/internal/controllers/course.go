@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -184,14 +185,32 @@ func UpdateCourse(c *gin.Context, db *gorm.DB) {
     })
 }
 
-// GetCourses retrieves all courses
+// GetCourses retrieves a list of courses with their associated lessons and user profiles
 func GetCourses(c *gin.Context, db *gorm.DB) {
     var courses []models.Course
-    if err := db.Preload("Lessons").Find(&courses).Error; err != nil {
+
+    // Preload "Lessons" and "User.Profile" relationships
+    if err := db.Preload("Lessons").
+        Preload("User.Profile"). // Preload User and Profile
+        Find(&courses).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch courses"})
         return
     }
 
+    // Construct course and profile image URLs
+    for i, course := range courses {
+        // Set image URL for the course
+        if course.Image != "" {
+            courses[i].Image = fmt.Sprintf("http://localhost:8080%s", course.Image)
+        }
+
+        // Set image URL for the user's profile
+        if course.User.Profile.Image != "" {
+            courses[i].User.Profile.Image = fmt.Sprintf("http://localhost:8080%s", course.User.Profile.Image)
+        }
+    }
+
+    // Return the courses along with user profile and image URLs
     c.JSON(http.StatusOK, gin.H{"courses": courses})
 }
 

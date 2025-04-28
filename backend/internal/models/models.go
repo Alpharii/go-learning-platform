@@ -2,23 +2,6 @@ package models
 
 import "gorm.io/gorm"
 
-// User represents the user table
-type User struct {
-    gorm.Model
-    GoogleID string `gorm:"unique"` // Unique identifier from Google OAuth
-    Email    string `gorm:"unique"` // Email address of the user
-    Profile  Profile               // One-to-one relationship with Profile
-    Courses  []Course              // Relasi one-to-many dengan Course (sebagai instruktur)
-}
-
-// Profile represents the profile table
-type Profile struct {
-    gorm.Model
-    UserID uint   `gorm:"unique"` // Foreign key to User
-    Name   string // Full name of the user
-    Image  string // URL of the profile image
-}
-
 // Course represents the course table
 type Course struct {
     gorm.Model
@@ -28,6 +11,24 @@ type Course struct {
     Image       string   // URL of the course image
     Lessons     []Lesson `gorm:"foreignKey:CourseID"` // Relasi one-to-many dengan Lesson
     Enrollments []Enrollment `gorm:"foreignKey:CourseID"` // Relasi one-to-many dengan Enrollment
+    User        User     `gorm:"foreignKey:UserID"` // Relasi ke User
+}
+
+// User represents the user table
+type User struct {
+    gorm.Model
+    GoogleID string   `gorm:"unique"` // Unique identifier from Google OAuth
+    Email    string   `gorm:"unique"` // Email address of the user
+    Profile  Profile  `gorm:"foreignKey:UserID"` // Relasi one-to-one dengan Profile
+    Courses  []Course `gorm:"foreignKey:UserID"`  // Relasi one-to-many dengan Course (sebagai instruktur)
+}
+
+// Profile represents the profile table
+type Profile struct {
+    gorm.Model
+    UserID uint   `gorm:"unique"` // Foreign key to User
+    Name   string // Full name of the user
+    Image  string // URL of the profile image
 }
 
 // Lesson represents the lesson table

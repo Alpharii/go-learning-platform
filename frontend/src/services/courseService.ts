@@ -1,12 +1,26 @@
 import axiosInstance from './axiosInstance'
 
+export interface Profile {
+  ID: number
+  Name: string
+  Image: string
+}
+
+export interface User {
+  ID: number
+  Email: string
+  Profile: Profile
+}
+
 export interface Course {
-    ID: number
-    CreatedAt: string
-    UpdatedAt: string
-    DeletedAt: string | null
-    Title: string
-    Description: string
+  ID: number
+  CreatedAt: string
+  UpdatedAt: string
+  DeletedAt: string | null
+  Title: string
+  Description: string
+  Image: string
+  User: User
 }
 
 /**
@@ -29,17 +43,18 @@ export const fetchCourses = async (): Promise<Course[]> => {
 
 /**
  * Create a new course.
- * @param {Partial<Course>} courseData - The course data to be created.
+ * @param {FormData} formData - The course data with text and image.
  * @returns {Promise<Course>} - The newly created course.
  */
-export const createCourse = async (courseData: Partial<Course>): Promise<Course> => {
+export const createCourse = async (formData: FormData): Promise<Course> => {
   try {
-    const response = await axiosInstance.post('/courses', courseData, {
+    const response = await axiosInstance.post('/courses', formData, {
       headers: {
+        'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${localStorage.getItem('authToken')}`,
       },
     })
-    return response.data
+    return response.data.course
   } catch (error) {
     console.error('Error creating course:', error)
     throw error

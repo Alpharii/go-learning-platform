@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/stores/authStores'
+import CreateCourse from '@/views/Course/Create/CreateCourse.vue'
 import DashboardView from '@/views/Dashboard/DashboardView.vue'
 import HomeView from '@/views/HomeView/HomeView.vue'
 import LoginView from '@/views/LoginView/LoginView.vue'
@@ -39,6 +40,12 @@ const router = createRouter({
       path: '/profile/update',
       name: 'UpdateProfile',
       component: UpdateProfile,
+      meta: { requiresAuth: true }, // Pastikan hanya pengguna autentikasi yang bisa mengakses
+    },
+    {
+      path: '/course/create',
+      name: 'CreateCourse',
+      component: CreateCourse,
       meta: { requiresAuth: true }, // Pastikan hanya pengguna autentikasi yang bisa mengakses
     },
   ],

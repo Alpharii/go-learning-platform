@@ -122,24 +122,57 @@ onMounted(() => {
       </Alert>
 
       <div v-else class="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        <Card 
-          v-for="course in courses"
-          :key="course.ID"
-          class="hover:shadow-lg transition-shadow"
-        >
-          <CardHeader>
-            <CardTitle class="text-base">{{ course.Title }}</CardTitle>
-            <CardDescription class="line-clamp-3">
-              {{ course.Description || 'Tidak ada deskripsi' }}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" class="w-full">
-              Lihat Detail
-            </Button>
-          </CardContent>
-        </Card>
+  <Card
+    v-for="course in courses"
+    :key="course.ID"
+    class="hover:shadow-lg transition-shadow"
+  >
+    <CardHeader class="p-0 -mt-6">
+      <!-- Gambar Course (mentok ke atas) -->
+      <div class="relative">
+        <img
+          v-if="course.Image"
+          :src="course.Image"
+          alt="Course image"
+          class="w-full h-40 object-cover rounded-t-md"
+        />
       </div>
+    </CardHeader>
+    <CardContent class="flex flex-col justify-between p-6 pt-0">
+      <!-- Title and Description -->
+      <div class="space-y-2">
+        <CardTitle class="text-base font-semibold">{{ course.Title }}</CardTitle>
+        <CardDescription class="line-clamp-3 text-sm text-muted-foreground">
+          {{ course.Description || 'Tidak ada deskripsi' }}
+        </CardDescription>
+      </div>
+
+      <!-- Profile Pembuat -->
+      <div class="flex items-center space-x-3 mt-4">
+        <Avatar class="h-8 w-8">
+          <AvatarImage
+            :src="course.User?.Profile?.Image"
+            alt="Author image"
+          />
+          <AvatarFallback class="bg-primary text-primary-foreground">
+            {{ course.User?.Profile?.Name?.[0]?.toUpperCase() || '?' }}
+          </AvatarFallback>
+        </Avatar>
+        <span class="text-sm font-medium">
+          {{ course.User?.Profile?.Name || 'Unknown' }}
+        </span>
+      </div>
+    </CardContent>
+
+    <CardFooter class="p-6 pt-0">
+      <Button variant="outline" size="sm" class="w-full">
+        Lihat Detail
+      </Button>
+    </CardFooter>
+  </Card>
+</div>
+
+
     </main>
   </div>
 </template>

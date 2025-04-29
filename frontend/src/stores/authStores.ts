@@ -34,6 +34,8 @@ export const useAuthStore = defineStore('auth', {
       try {
         const res = await axiosInstance.get('/profile/me')
         const userData = res.data
+
+        console.log(res.data)
     
         // Pastikan data sesuai dengan interface User
         this.user = {

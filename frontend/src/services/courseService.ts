@@ -21,6 +21,7 @@ export interface Course {
   Description: string
   Image: string
   User: User
+  Progress: number
 }
 
 /**

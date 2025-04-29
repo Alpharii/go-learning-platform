@@ -21,6 +21,7 @@ type User struct {
     Email    string   `gorm:"unique"` // Email address of the user
     Profile  Profile  `gorm:"foreignKey:UserID"` // Relasi one-to-one dengan Profile
     Courses  []Course `gorm:"foreignKey:UserID"`  // Relasi one-to-many dengan Course (sebagai instruktur)
+    Enrollments []Enrollment `gorm:"foreignKey:UserID"` // Tambahkan di struct User
 }
 
 // Profile represents the profile table
@@ -48,6 +49,7 @@ type Enrollment struct {
     UserID   uint    `gorm:"not null"`
     CourseID uint    `gorm:"not null"`
     Progress float64 `gorm:"default:0"` // Progress in percentage (0-100)
+    Course   Course  `gorm:"foreignKey:CourseID"`
 }
 
 type Quiz struct {

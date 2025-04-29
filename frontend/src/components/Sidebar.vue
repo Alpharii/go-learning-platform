@@ -83,7 +83,7 @@ const logout = () => {
 const menuItemsTop = [
   { label: 'Home', icon: Home, path: '/' },
   { label: 'My Course', icon: BookOpen, path: '/my-course' },
-  { label: 'Profile', icon: User, path: '/profile/update' },
+  { label: 'Profile', icon: User, path: '/myProfile' },
 ]
 
 const menuItemsBottom = [

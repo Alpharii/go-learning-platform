@@ -33,21 +33,31 @@ func GetMyProfile(c *gin.Context, db *gorm.DB) {
 
     createdCourses := make([]gin.H, 0)
     for _, course := range user.Courses {
+        courseImage := ""
+        if course.Image != "" {
+            courseImage = fmt.Sprintf("http://localhost:8080%s", course.Image)
+        }
+
         createdCourses = append(createdCourses, gin.H{
             "id":          course.ID,
             "title":       course.Title,
             "description": course.Description,
-            "image":       course.Image,
+            "image":       courseImage,
         })
     }
 
     enrolledCourses := make([]gin.H, 0)
     for _, enrollment := range user.Enrollments {
+        courseImage := ""
+        if enrollment.Course.Image != "" {
+            courseImage = fmt.Sprintf("http://localhost:8080%s", enrollment.Course.Image)
+        }
+
         enrolledCourses = append(enrolledCourses, gin.H{
             "id":          enrollment.Course.ID,
             "title":       enrollment.Course.Title,
             "description": enrollment.Course.Description,
-            "image":       enrollment.Course.Image,
+            "image":       courseImage,
             "progress":    enrollment.Progress,
         })
     }
@@ -63,6 +73,7 @@ func GetMyProfile(c *gin.Context, db *gorm.DB) {
         "enrolled_courses": enrolledCourses,
     })
 }
+
 
 // GetProfile retrieves the profile of a user by their ID
 func GetProfile(c *gin.Context, db *gorm.DB) {

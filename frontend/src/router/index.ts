@@ -1,5 +1,6 @@
 import { useAuthStore } from '@/stores/authStores'
 import CreateCourse from '@/views/Course/Create/CreateCourse.vue'
+import MyCourse from '@/views/Course/MyCourse/MyCourse.vue'
 import DashboardView from '@/views/Dashboard/DashboardView.vue'
 import HomeView from '@/views/HomeView/HomeView.vue'
 import LoginView from '@/views/LoginView/LoginView.vue'
@@ -50,6 +51,12 @@ const router = createRouter({
       meta: { requiresAuth: true }, // Pastikan hanya pengguna autentikasi yang bisa mengakses
     },
     {
+      path: '/my-course',
+      name: 'MyCourse',
+      component: MyCourse,
+      meta: { requiresAuth: true }, // Pastikan hanya pengguna autentikasi yang bisa mengakses
+    },
+    {
       path: '/course/create',
       name: 'CreateCourse',
       component: CreateCourse,
@@ -60,11 +67,6 @@ const router = createRouter({
 
 router.beforeEach((to, _, next) => {
   const auth = useAuthStore()
-
-  console.log('Router beforeEach triggered')
-  console.log('Route:', to.name)
-  console.log('Auth token:', auth.token)
-  console.log('Auth user:', auth.user)
 
   // Jika pengguna sudah di halaman CreateProfile, jangan redirect lagi
   if (to.name === 'CreateProfile') {

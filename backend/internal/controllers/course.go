@@ -214,7 +214,7 @@ func GetCourses(c *gin.Context, db *gorm.DB) {
     c.JSON(http.StatusOK, gin.H{"courses": courses})
 }
 
-// GetCourse retrieves a specific course by ID
+// GetCourse retrieves a specific course by ID, including profile & quizzes
 func GetCourse(c *gin.Context, db *gorm.DB) {
     id, err := strconv.Atoi(c.Param("id"))
     if err != nil {
@@ -223,13 +223,33 @@ func GetCourse(c *gin.Context, db *gorm.DB) {
     }
 
     var course models.Course
-    if err := db.Preload("Lessons").First(&course, id).Error; err != nil {
+    // Preload User.Profile, Lessons, and nested Quizzes
+    if err := db.
+        Preload("User.Profile").
+        Preload("Lessons.Quizzes").
+        Preload("Lessons").
+        First(&course, id).Error; err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
         return
     }
 
+    // Prefix image URLs
+    if course.Image != "" {
+        course.Image = fmt.Sprintf("http://localhost:8080%s", course.Image)
+    }
+    if course.User.Profile.Image != "" {
+        course.User.Profile.Image = fmt.Sprintf("http://localhost:8080%s", course.User.Profile.Image)
+    }
+    // Also prefix lesson images if you store them similarly
+    for i, lesson := range course.Lessons {
+        if lesson.Image != "" {
+            course.Lessons[i].Image = fmt.Sprintf("http://localhost:8080%s", lesson.Image)
+        }
+    }
+
     c.JSON(http.StatusOK, gin.H{"course": course})
 }
+
 
 // DeleteCourse deletes a specific course by ID
 func DeleteCourse(c *gin.Context, db *gorm.DB) {

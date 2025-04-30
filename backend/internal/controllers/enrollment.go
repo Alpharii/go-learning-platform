@@ -1,12 +1,14 @@
 package controllers
 
 import (
-    "net/http"
-    "strconv"
+	"fmt"
+	"net/http"
+	"strconv"
 
-    "go-learn-platform/internal/models"
-    "github.com/gin-gonic/gin"
-    "gorm.io/gorm"
+	"go-learn-platform/internal/models"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // EnrollUser enrolls a user to a course
@@ -85,6 +87,7 @@ func GetEnrollments(c *gin.Context, db *gorm.DB) {
 // CancelEnrollment cancels a user's enrollment in a course
 func CancelEnrollment(c *gin.Context, db *gorm.DB) {
     enrollmentID, err := strconv.Atoi(c.Param("id"))
+    fmt.Println(enrollmentID)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid enrollment ID"})
         return

@@ -2,49 +2,29 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStores'
-import {
-  Avatar,
-  AvatarImage,
-  AvatarFallback
-} from '@/components/ui/avatar'
-import {
-  Button
-} from '@/components/ui/button'
-import {
-  Alert,
-  AlertDescription
-} from '@/components/ui/alert'
-import {
-  Skeleton
-} from '@/components/ui/skeleton'
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardDescription,
-  CardTitle,
-  CardFooter
-} from '@/components/ui/card'
-import {
-  LogOut,
-  Pencil,
-  Trash2
-} from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardHeader, CardContent, CardDescription, CardTitle, CardFooter } from '@/components/ui/card'
+import { LogOut, Pencil, Trash2 } from 'lucide-vue-next'
 import { getMyProfile } from '@/services/profileServices'
+import { cancelEnrollment } from '@/services/enrollServices'
+import { deleteCourse } from '@/services/courseService'
 
-// Interface untuk data kursus
+// Interface untuk data kursus beserta enrollment ID
 interface EnrolledCourse {
-  id: number
+  enrollmentId: number
+  courseId: number
   title: string
   description: string
   image: string
   progress: number
-  courseId: number
 }
 
 // Setup
 const router = useRouter()
 const auth = useAuthStore()
+const createdCourses = ref<EnrolledCourse[]>([])
 const enrolledCourses = ref<EnrolledCourse[]>([])
 const isLoading = ref(true)
 const error = ref<string | null>(null)
@@ -58,32 +38,40 @@ const profileInitials = computed(() =>
 )
 
 // Muat data profil dan kursus
-const loadEnrolledCourses = async () => {
+const loadCourses = async () => {
   try {
     const data = await getMyProfile()
-    enrolledCourses.value = data.enrolled_courses.map((course: any) => ({
-      id: course.id,
-      courseId: course.course_id,
-      title: course.title,
-      description: course.description,
-      image: course.image,
-      progress: course.progress || 0
+    createdCourses.value = data.created_courses.map((c: any) => ({
+      enrollmentId: 0,
+      courseId: c.id,
+      title: c.title,
+      description: c.description,
+      image: c.image,
+      progress: 0
+    }))
+    enrolledCourses.value = data.enrolled_courses.map((e: any) => ({
+      enrollmentId: e.id,
+      courseId: e.course_id,
+      title: e.title,
+      description: e.description,
+      image: e.image,
+      progress: e.progress || 0
     }))
     error.value = null
   } catch (err) {
-    error.value = 'Gagal memuat kursus yang diikuti. Silakan coba lagi.'
-    console.error('Error fetching enrolled courses:', err)
+    error.value = 'Gagal memuat data kursus. Silakan coba lagi.'
+    console.error('Error fetching courses:', err)
   } finally {
     isLoading.value = false
   }
 }
 
 onMounted(() => {
-  loadEnrolledCourses()
+  loadCourses()
 })
 
 // Aksi
-function goToEdit() {
+function goToEditProfile() {
   router.push('/profile/update')
 }
 
@@ -91,16 +79,35 @@ function logout() {
   auth.logout()
 }
 
-async function handleUnenroll(courseId: number) {
-  if (confirm('Yakin ingin berhenti mengikuti kursus ini?')) {
-    try {
-    //   await cancelEnrollment(courseId)
-      enrolledCourses.value = enrolledCourses.value.filter(c => c.courseId !== courseId)
-    } catch (err) {
-      alert('Gagal membatalkan pendaftaran kursus.')
-      console.error('Error canceling enrollment:', err)
-    }
+async function handleUnenroll(enrollmentId: number) {
+  if (!confirm('Yakin ingin berhenti mengikuti kursus ini?')) return
+  try {
+    console.log(enrollmentId)
+    await cancelEnrollment(enrollmentId)
+    enrolledCourses.value = enrolledCourses.value.filter(c => c.enrollmentId !== enrollmentId)
+  } catch (err) {
+    alert('Gagal membatalkan pendaftaran kursus.')
+    console.error('Error canceling enrollment:', err)
   }
+}
+
+async function handleDeleteCourse(courseId: number) {
+  if (!confirm('Yakin ingin menghapus kursus ini?')) return
+  try {
+    await deleteCourse(courseId)
+    createdCourses.value = createdCourses.value.filter(c => c.courseId !== courseId)
+  } catch (err) {
+    alert('Gagal menghapus kursus.')
+    console.error('Delete course error:', err)
+  }
+}
+
+function viewDetail(courseId: number) {
+  router.push(`/courses/${courseId}`)
+}
+
+function editCourse(courseId: number) {
+  router.push(`/courses/edit/${courseId}`)
 }
 </script>
 
@@ -112,34 +119,6 @@ async function handleUnenroll(courseId: number) {
         <AlertDescription>{{ error }}</AlertDescription>
       </Alert>
 
-      <!-- Profile Header -->
-      <div class="relative">
-        <!-- Cover Image -->
-        <div class="rounded-lg overflow-hidden bg-gray-200 h-40"></div>
-
-        <!-- Profile Info -->
-        <div class="-mt-16 flex flex-col items-center text-center">
-          <Avatar class="w-32 h-32 border-4 border-white shadow-lg">
-            <AvatarImage :src="profileImage" alt="Profile picture" />
-            <AvatarFallback class="bg-primary text-primary-foreground">
-              {{ profileInitials }}
-            </AvatarFallback>
-          </Avatar>
-          <h1 class="mt-4 text-3xl font-bold text-foreground">{{ profileName }}</h1>
-          <p class="text-muted-foreground mb-4">{{ profileEmail }}</p>
-          <div class="flex space-x-2">
-            <Button variant="outline" size="sm" class="flex items-center gap-1" @click="goToEdit">
-              <Pencil class="w-4 h-4" />
-              Edit Profil
-            </Button>
-            <Button variant="ghost" size="sm" class="flex items-center gap-1 text-destructive" @click="logout">
-              <LogOut class="w-4 h-4" />
-              Keluar
-            </Button>
-          </div>
-        </div>
-      </div>
-
       <!-- Loading Skeleton -->
       <div v-if="isLoading" class="mt-8 grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <div v-for="n in 3" :key="`skeleton-${n}`" class="flex flex-col space-y-2">
@@ -149,71 +128,102 @@ async function handleUnenroll(courseId: number) {
         </div>
       </div>
 
-      <!-- Konten Utama -->
+      <!-- Konten -->
       <template v-else>
-        <!-- Judul -->
-        <h2 class="text-xl font-semibold text-foreground mt-10 mb-4">Kursus yang Anda Ikuti</h2>
+        <!-- Kursus Buatan Saya -->
+        <section class="mt-10">
+          <h2 class="text-xl font-semibold text-foreground mb-4">Kursus yang Anda Buat</h2>
+          <div v-if="createdCourses.length" class="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            <Card
+              v-for="course in createdCourses"
+              :key="`created-${course.courseId}`"
+              class="hover:shadow-lg transition-shadow flex flex-col h-full"
+            >
+              <CardHeader class="p-0 -mt-6">
+                <img
+                  v-if="course.image"
+                  :src="course.image"
+                  alt="Course image"
+                  class="w-full h-40 object-cover rounded-t-md"
+                />
+              </CardHeader>
 
-        <!-- Daftar Kursus -->
-        <div class="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          <Card
-            v-for="course in enrolledCourses"
-            :key="course.id"
-            class="hover:shadow-lg transition-shadow flex flex-col h-full"
-          >
-            <!-- Gambar Kursus -->
-            <CardHeader class="p-0 -mt-6">
-              <div class="relative">
+              <CardContent class="flex-1 p-6 pt-4">
+                <CardTitle class="text-base font-semibold mb-2">{{ course.title }}</CardTitle>
+                <CardDescription class="line-clamp-3 text-sm text-muted-foreground">
+                  {{ course.description || 'Tidak ada deskripsi' }}
+                </CardDescription>
+              </CardContent>
+
+              <CardFooter class="p-6 pt-0 flex flex-col space-y-2">
+                <Button variant="outline" size="sm" class="w-full" @click="viewDetail(course.courseId)">Lihat Detail</Button>
+                <Button variant="ghost" size="sm" class="w-full flex items-center gap-1" @click="editCourse(course.courseId)">
+                  <Pencil class="w-4 h-4" />
+                  Edit
+                </Button>
+                <Button variant="destructive" size="sm" class="w-full flex items-center gap-1" @click="handleDeleteCourse(course.courseId)">
+                  <Trash2 class="w-4 h-4" />
+                  Hapus
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+          <p v-else class="text-muted-foreground">Anda belum membuat kursus apa pun.</p>
+        </section>
+
+        <!-- Kursus Saya Ikuti -->
+        <section class="mt-10">
+          <h2 class="text-xl font-semibold text-foreground mb-4">Kursus yang Anda Ikuti</h2>
+          <div v-if="enrolledCourses.length" class="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            <Card
+              v-for="course in enrolledCourses"
+              :key="`enrolled-${course.enrollmentId}`"
+              class="hover:shadow-lg transition-shadow flex flex-col h-full"
+            >
+              <CardHeader class="p-0 -mt-6">
                 <img
                   :src="course.image || 'https://via.placeholder.com/400x160'"
                   alt="Course image"
                   class="w-full h-40 object-cover rounded-t-md"
                 />
-              </div>
-            </CardHeader>
+              </CardHeader>
 
-            <!-- Konten Kursus -->
-            <CardContent class="flex-1 p-6 pt-4 flex flex-col justify-between">
-              <div>
-                <CardTitle class="text-base font-semibold mb-2">{{ course.title }}</CardTitle>
-                <CardDescription class="line-clamp-3 text-sm text-muted-foreground">
-                  {{ course.description || 'Tidak ada deskripsi' }}
-                </CardDescription>
-              </div>
-
-              <!-- Progres -->
-              <div class="mt-4">
-                <div class="flex justify-between text-xs mb-1">
-                  <span>Progres</span>
-                  <span>{{ course.progress }}%</span>
+              <CardContent class="flex-1 p-6 pt-4 flex flex-col justify-between">
+                <div>
+                  <CardTitle class="text-base font-semibold mb-2">{{ course.title }}</CardTitle>
+                  <CardDescription class="line-clamp-3 text-sm text-muted-foreground">
+                    {{ course.description || 'Tidak ada deskripsi' }}
+                  </CardDescription>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    class="bg-primary h-2 rounded-full transition-all duration-500"
-                    :style="{ width: `${course.progress}%` }"
-                  ></div>
+
+                <div class="mt-4">
+                  <div class="flex justify-between text-xs mb-1">
+                    <span>Progres</span>
+                    <span>{{ course.progress }}%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      class="bg-primary h-2 rounded-full transition-all duration-500"
+                      :style="{ width: `${course.progress}%` }"
+                    ></div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
+              </CardContent>
 
-            <!-- Aksi -->
-            <CardFooter class="p-6 pt-0 flex flex-col space-y-2">
-              <Button variant="outline" size="sm" class="w-full" @click="router.push(`/courses/${course.courseId}`)">
-                Lihat Detail
-              </Button>
-              <Button variant="ghost" size="sm" class="w-full text-destructive flex items-center gap-1" @click="handleUnenroll(course.courseId)">
-                <Trash2 class="w-4 h-4" />
-                Batalkan Pendaftaran
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-
-        <!-- Jika tidak ada kursus -->
-        <div v-if="enrolledCourses.length === 0 && !isLoading" class="text-center py-10">
-          <p class="text-muted-foreground">Anda belum mengikuti kursus apa pun.</p>
-          <Button class="mt-4" @click="router.push('/courses')">Telusuri Kursus</Button>
-        </div>
+              <CardFooter class="p-6 pt-0 flex flex-col space-y-2">
+                <Button variant="outline" size="sm" class="w-full" @click="viewDetail(course.courseId)">Lihat Detail</Button>
+                <Button variant="ghost" size="sm" class="w-full text-destructive flex items-center gap-1" @click="handleUnenroll(course.enrollmentId)">
+                  <Trash2 class="w-4 h-4" />
+                  Batalkan Pendaftaran
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+          <div v-else class="text-center py-10">
+            <p class="text-muted-foreground">Anda belum mengikuti kursus apa pun.</p>
+            <Button class="mt-4" @click="router.push('/courses')">Telusuri Kursus</Button>
+          </div>
+        </section>
       </template>
     </main>
   </div>

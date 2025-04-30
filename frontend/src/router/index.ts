@@ -1,5 +1,6 @@
 import { useAuthStore } from '@/stores/authStores'
 import CreateCourse from '@/views/Course/Create/CreateCourse.vue'
+import DetailCourse from '@/views/Course/Detail/DetailCourse.vue'
 import MyCourse from '@/views/Course/MyCourse/MyCourse.vue'
 import DashboardView from '@/views/Dashboard/DashboardView.vue'
 import HomeView from '@/views/HomeView/HomeView.vue'
@@ -61,6 +62,12 @@ const router = createRouter({
       name: 'CreateCourse',
       component: CreateCourse,
       meta: { requiresAuth: true }, // Pastikan hanya pengguna autentikasi yang bisa mengakses
+    },
+    {
+      path: '/courses/:id',
+      name: 'CourseDetail',
+      component: () => DetailCourse,
+      meta: { requiresAuth: true },
     },
   ],
 })

@@ -24,6 +24,43 @@ export interface Course {
   Progress: number
 }
 
+export interface Quiz {
+  id: number
+  lessonId: number
+  question: string
+  options: string[]
+}
+
+export interface Lesson {
+  id: number
+  title: string
+  content: string
+  order: number
+  image?: string
+  quizzes?: Quiz[]
+}
+
+/**
+ * Represents detailed information about a course, including relations.
+ */
+export interface CourseDetail {
+  id: number
+  title: string
+  description: string
+  image?: string
+  user: {
+    id: number
+    email: string
+    profile: {
+      id: number
+      name: string
+      image?: string
+    }
+  }
+  lessons: Lesson[]
+}
+
+
 /**
  * Fetch all courses from the backend API.
  * @returns {Promise<Course[]>} - A list of courses.
@@ -41,6 +78,54 @@ export const fetchCourses = async (): Promise<Course[]> => {
     throw error
   }
 }
+
+export const fetchCourseById = async (courseId: number): Promise<CourseDetail> => {
+  try {
+    const { data } = await axiosInstance.get(`/courses/${courseId}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
+    })
+
+    // raw API payload
+    const raw = data.course
+
+    // map to your CourseDetail interface
+    const mapped: CourseDetail = {
+      id: raw.ID,
+      title: raw.Title,
+      description: raw.Description,
+      image: raw.Image || undefined,
+      user: {
+        id: raw.User.ID,
+        email: raw.User.Email,
+        profile: {
+          id: raw.User.Profile?.ID ?? 0,
+          name: raw.User.Profile?.Name ?? 'Unknown',
+          image: raw.User.Profile?.Image,
+        },
+      },
+      lessons: (raw.Lessons || []).map((l: any) => ({
+        id: l.ID,
+        title: l.Title,
+        content: l.Content,
+        order: l.Order,
+        image: l.Image,
+        quizzes: (l.Quizzes || []).map((q: any) => ({
+          id: q.ID,
+          lessonId: q.LessonID,
+          question: q.Question,
+          options: q.Options,
+        })),
+      })),
+    }
+
+    return mapped
+  } catch (error) {
+    console.error('Error fetching course detail:', error)
+    throw error
+  }
+}
+
+
 
 /**
  * Create a new course.

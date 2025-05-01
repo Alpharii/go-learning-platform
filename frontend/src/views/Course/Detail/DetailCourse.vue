@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { fetchCourseById, type CourseDetail } from '@/services/courseService'
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 
 const route = useRoute()
-const router = useRouter()
 const courseId = Number(route.params.id)
 
 const course = ref<CourseDetail | null>(null)
@@ -30,83 +29,86 @@ onMounted(loadCourse)
 </script>
 
 <template>
-  <div class="min-h-screen bg-background p-6 space-y-8">
-    <Button variant="ghost" @click="router.back()">Kembali</Button>
+  <div class="min-h-screen bg-orange-50">
+    <!-- LOADING STATE -->
+    <div v-if="isLoading" class="max-w-7xl mx-auto py-12 px-4">
+      <Skeleton class="h-8 w-1/2 mb-4" />
+      <Skeleton class="h-6 w-full mb-2" />
+      <Skeleton class="h-6 w-3/4" />
+    </div>
 
-    <template v-if="isLoading">
-      <div class="space-y-4">
-        <Skeleton class="h-8 w-1/3" />
-        <Skeleton class="h-64 w-full" />
-        <Skeleton class="h-4 w-3/4" />
-        <Skeleton class="h-4 w-2/3" />
-      </div>
-    </template>
+    <!-- ERROR STATE -->
+    <div v-else-if="error" class="max-w-2xl mx-auto py-12 px-4">
+      <Alert>
+        <AlertDescription>{{ error }}</AlertDescription>
+      </Alert>
+    </div>
 
-    <Alert v-else-if="error" variant="destructive">
-      <AlertDescription>{{ error }}</AlertDescription>
-    </Alert>
-
-    <template v-else>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-        <!-- Course Info -->
-        <div class="md:col-span-2 space-y-4">
-          <h1 class="text-3xl font-bold">{{ course?.title }}</h1>
-          <p class="text-sm text-muted-foreground">Dibuat oleh: {{ course?.user.profile.name }}</p>
-          <Card>
-            <CardHeader>
-              <CardTitle>Deskripsi</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>{{ course?.description }}</CardDescription>
-            </CardContent>
-          </Card>
-
-          <!-- Lessons Grid -->
-          <section>
-            <h2 class="text-xl font-semibold mb-4">Daftar Lesson</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <template v-for="lesson in course?.lessons" :key="lesson.id">
-                <Card class="h-full flex flex-col">
-                  <CardHeader>
-                    <CardTitle>{{ lesson.title }}</CardTitle>
-                  </CardHeader>
-                  <CardContent class="flex-1 flex flex-col justify-between">
-                    <CardDescription class="line-clamp-3 mb-3">{{ lesson.content }}</CardDescription>
-                    <Button variant="outline" size="sm" @click="router.push(`/lessons/${lesson.id}`)">Lihat Lesson</Button>
-                  </CardContent>
-                </Card>
-              </template>
-            </div>
-            <p v-if="course?.lessons.length === 0" class="text-center text-muted-foreground mt-6">
-              Belum ada lesson untuk kursus ini.
-            </p>
-          </section>
-        </div>
-
-        <!-- Sidebar: Image & Quiz -->
+    <!-- COURSE DETAIL -->
+    <div v-else>
+      <div class="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+        <!-- LEFT SIDE -->
         <div class="space-y-6">
-          <div v-if="course?.image" class="overflow-hidden rounded-lg shadow-lg">
-            <img :src="course.image" alt="Course image" class="object-cover w-full h-48" />
+          <h1 class="text-4xl font-bold leading-tight">{{ course?.title }}</h1>
+          <p class="text-muted-foreground">{{ course?.description }}</p>
+
+          <div class="flex items-center gap-6 text-sm text-muted-foreground">
+            <div>⭐ <strong>{{ course?.rating || 4.7 }}</strong> rating</div>
+            <div><strong>{{ course?.exercises || 121 }}</strong> latihan</div>
+            <div><strong>{{ course?.hours || 87 }}</strong> jam konten</div>
           </div>
 
-          <section v-if="course?.lessons.some(l => l.quizzes?.length)">
-            <h2 class="text-lg font-semibold mb-3">Quiz Tersedia</h2>
-            <ul class="space-y-2">
-              <li v-for="lesson in course.lessons" :key="lesson.id">
-                <div v-if="lesson.quizzes?.length">
-                  <p class="font-medium mb-1">{{ lesson.title }}</p>
-                  <ul class="ml-4 list-disc space-y-1">
-                    <li v-for="quiz in lesson.quizzes" :key="quiz.id">
-                      <Button variant="link" size="sm" @click="router.push(`/quizzes/${quiz.id}`)">Quiz: {{ quiz.question }}</Button>
-                    </li>
-                  </ul>
-                </div>
-              </li>
-            </ul>
-          </section>
+          <div class="flex items-center gap-4">
+            <Button size="lg">Mulai Sekarang</Button>
+            <div class="text-lg font-semibold text-foreground">Rp{{ new Intl.NumberFormat().format(1607000) }}</div>
+          </div>
+
+          <p class="text-sm text-muted-foreground">
+            {{ course?.enrollments || "1,481,897" }} peserta telah mendaftar
+          </p>
+
+          <!-- INSTRUCTOR INFO -->
+          <div class="flex items-center gap-3 mt-2">
+            <img
+              v-if="course?.user.profile.image"
+              :src="course.user.profile.image"
+              class="w-10 h-10 rounded-full object-cover"
+              alt="Instructor"
+            />
+            <p class="text-sm text-muted-foreground">
+              Dibuat oleh <span class="font-semibold">{{ course.user.profile.name }}</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE (IMAGE) -->
+        <div class="flex justify-center md:justify-end">
+          <img
+            v-if="course?.image"
+            :src="course.image"
+            class="rounded-2xl shadow-lg w-full max-w-md object-cover"
+            alt="Course"
+          />
         </div>
       </div>
-    </template>
+
+      <!-- WHAT YOU'LL LEARN -->
+      <div class="bg-white py-12 px-4">
+        <div class="max-w-7xl mx-auto space-y-8">
+          <h2 class="text-2xl font-bold">Apa yang akan kamu pelajari</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div
+              v-for="(topic, index) in course?.lessons"
+              :key="index"
+              class="p-6 bg-muted rounded-xl shadow hover:shadow-md transition"
+            >
+              <h3 class="text-lg font-semibold mb-2">{{ topic.title }}</h3>
+              <p class="text-sm text-muted-foreground">{{ topic.content.slice(0, 100) }}...</p>
+              <Button variant="link" size="sm" class="mt-4 p-0">Lihat konten →</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
-

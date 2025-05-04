@@ -53,9 +53,8 @@ onMounted(loadCourse)
           <p class="text-muted-foreground">{{ course?.description }}</p>
 
           <div class="flex items-center gap-6 text-sm text-muted-foreground">
-            <div>⭐ <strong>{{ course?.rating || 4.7 }}</strong> rating</div>
-            <div><strong>{{ course?.exercises || 121 }}</strong> latihan</div>
-            <div><strong>{{ course?.hours || 87 }}</strong> jam konten</div>
+            <div>⭐ <strong>{{ course?.rating || 4.7 }}</strong> Rating</div>
+            <div><strong>{{ course?.lessons.length || 0 }}</strong> Modul</div>
           </div>
 
           <div class="flex items-center gap-4">
@@ -92,23 +91,37 @@ onMounted(loadCourse)
         </div>
       </div>
 
-      <!-- WHAT YOU'LL LEARN -->
-      <div class="bg-white py-12 px-4">
-        <div class="max-w-7xl mx-auto space-y-8">
-          <h2 class="text-2xl font-bold">Apa yang akan kamu pelajari</h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div
-              v-for="(topic, index) in course?.lessons"
-              :key="index"
-              class="p-6 bg-muted rounded-xl shadow hover:shadow-md transition"
-            >
-              <h3 class="text-lg font-semibold mb-2">{{ topic.title }}</h3>
-              <p class="text-sm text-muted-foreground">{{ topic.content.slice(0, 100) }}...</p>
-              <Button variant="link" size="sm" class="mt-4 p-0">Lihat konten →</Button>
-            </div>
-          </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-yellow-50 py-10">
+      <Card
+        v-for="(topic, index) in course?.lessons"
+        :key="index"
+        class="overflow-hidden transition-shadow hover:shadow-md ml-36"
+      >
+        <!-- Image -->
+        <div v-if="topic.image" class="relative h-60 w-full -mb-15">
+          <img
+            :src="topic.image"
+            alt="Lesson Image"
+            class="h-full w-full object-cover -mt-10"
+          />
         </div>
-      </div>
+
+        <CardContent class="p-6">
+          <!-- Title -->
+          <h3 class="text-lg font-semibold mb-2">{{ topic.title }}</h3>
+
+          <!-- Content Snippet -->
+          <p class="text-sm text-muted-foreground line-clamp-3">
+            {{ topic.content }}
+          </p>
+
+          <!-- Action Button -->
+          <Button variant="link" size="sm" class="mt-4 p-0">
+            Lihat konten →
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
     </div>
   </div>
 </template>

@@ -1,9 +1,13 @@
 import { useAuthStore } from '@/stores/authStores'
 import CreateCourse from '@/views/Course/Create/CreateCourse.vue'
 import DetailCourse from '@/views/Course/Detail/DetailCourse.vue'
+import EditCourse from '@/views/Course/Edit/EditCourse.vue'
+import CourseManagement from '@/views/Course/Management/CourseManagement.vue'
 import MyCourse from '@/views/Course/MyCourse/MyCourse.vue'
 import DashboardView from '@/views/Dashboard/DashboardView.vue'
 import HomeView from '@/views/HomeView/HomeView.vue'
+import AddLesson from '@/views/Lesson/Create/AddLesson.vue'
+import LessonManagement from '@/views/Lesson/Create/Management/LessonManagement.vue'
 import LoginView from '@/views/LoginView/LoginView.vue'
 import CreateProfile from '@/views/Profile/Create/CreateProfile.vue'
 import MyProfile from '@/views/Profile/Get/MyProfile.vue'
@@ -68,6 +72,36 @@ const router = createRouter({
       name: 'CourseDetail',
       component: () => DetailCourse,
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/courses/edit/:id',
+      name: 'EditCourse',
+      component: () => EditCourse,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/courses/management',
+      name: 'CourseManagement',
+      component: () => CourseManagement,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/courses/:id/lessons/new',
+      name: 'AddLesson',
+      component: AddLesson,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/courses/:id/lessons',
+      name: 'LessonManagement',
+      component: () => LessonManagement,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/courses/:id/lessons/:lessonId/edit',
+      name: 'EditLesson',
+      component: () => CourseManagement,
+      meta: { requiresAuth: true }
     },
   ],
 })

@@ -88,7 +88,7 @@ const menuItemsTop = [
 
 const menuItemsBottom = [
   { label: 'Create Course', icon: PlusCircle, path: '/course/create' },
-  { label: 'Course Management', icon: Settings, path: '/course/management' },
+  { label: 'Course Management', icon: Settings, path: '/courses/management' },
 ]
 </script>
 

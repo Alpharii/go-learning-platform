@@ -148,25 +148,28 @@ export const createCourse = async (formData: FormData): Promise<Course> => {
 }
 
 /**
- * Update an existing course.
- * @param {number} courseId - The ID of the course to update.
- * @param {Partial<Course>} courseData - The updated course data.
- * @returns {Promise<Course>} - The updated course.
+ * Update course dengan FormData (untuk menangani image upload)
+ * @param courseId - ID course
+ * @param formData - FormData berisi Title, Description, dan Image (jika ada)
+ * @returns - Promise<Course>
  */
-export const updateCourse = async (courseId: number, courseData: Partial<Course>): Promise<Course> => {
+export const updateCourseWithFormData = async (
+  courseId: number,
+  formData: FormData
+): Promise<Course> => {
   try {
-    const response = await axiosInstance.put(`/courses/${courseId}`, courseData, {
+    const response = await axiosInstance.put(`/courses/${courseId}`, formData, {
       headers: {
+        'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${localStorage.getItem('authToken')}`,
       },
-    })
-    return response.data
+    });
+    return response.data.course; // Sesuaikan dengan respons API
   } catch (error) {
-    console.error('Error updating course:', error)
-    throw error
+    console.error('Error updating course with image:', error);
+    throw error;
   }
-}
-
+};
 /**
  * Delete a course by its ID.
  * @param {number} courseId - The ID of the course to delete.

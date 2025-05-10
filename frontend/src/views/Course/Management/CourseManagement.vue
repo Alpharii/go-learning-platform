@@ -68,6 +68,8 @@ import { Card, CardHeader, CardContent, CardDescription, CardTitle, CardFooter }
 import { Pencil, Trash2 } from 'lucide-vue-next'
 import { getMyProfile } from '@/services/profileServices'
 import { deleteCourse } from '@/services/courseService'
+import { useCourseStore } from '@/stores/course'
+
 
 interface CreatedCourse {
   courseId: number
@@ -103,7 +105,14 @@ onMounted(loadCreated)
 
 const viewDetail = (id: number) => router.push(`/courses/${id}`)
 const editCourse = (id: number) => router.push(`/courses/${id}/edit`)
-const manageLessons = (id: number) => router.push({ name: 'LessonManagement', params: { id } })
+const courseStore = useCourseStore()
+
+const manageLessons = (id: number) => {
+  console.log('manage lesson')
+  courseStore.setCurrentCourse(String(id))
+  console.log('succes store')
+  router.push({ name: 'LessonManagement', params: { id } })
+}
 
 const handleDelete = async (id: number) => {
   if (!confirm('Yakin ingin menghapus kursus ini?')) return
